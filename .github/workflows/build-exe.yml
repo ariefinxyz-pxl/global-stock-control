@@ -1,0 +1,37 @@
+name: Build EXE
+on:
+  workflow_dispatch:
+jobs:
+  build-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Root
+        run: npm install
+      - name: Buat .env.local dari Secrets
+        shell: bash
+        run: |
+          echo "NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}" > .env.local
+          echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}" >> .env.local
+          echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}" >> .env.local
+          echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}" >> .env.local
+          echo "NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}" >> .env.local
+      - name: Build Static
+        run: npm run build:static
+      - name: Copy out ke desktop
+        shell: bash
+        run: cp -r out desktop/out
+      - name: Install Desktop
+        run: npm install
+        working-directory: desktop
+      - name: Build EXE
+        run: npm run dist
+        working-directory: desktop
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: global-stock-control-exe
+          path: desktop/dist/*.exe
