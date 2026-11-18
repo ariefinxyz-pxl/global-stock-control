@@ -16,7 +16,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Install
-        run: npm ci
+        run: npm install
       - name: Build Static + Sync Capacitor
         run: npm run cap:sync
       - name: Build APK
