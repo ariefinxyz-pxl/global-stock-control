@@ -1,0 +1,72 @@
+rules_version = '2';
+
+// GLOBAL STOCK CONTROL - BISNIS HOTEL
+// Role: admin (penuh) | staff (input transaksi & stock opname) | viewer (lihat saja) | nonaktif (diblokir)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function profilePath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+    function role() {
+      return signedIn() && exists(profilePath()) ? get(profilePath()).data.role : 'none';
+    }
+    function isAdmin()  { return role() == 'admin'; }
+    function isStaff()  { return role() in ['admin', 'staff']; }
+    function canRead()  { return role() in ['admin', 'staff', 'viewer']; }
+
+    // Profil pengguna
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      // Login pertama: aplikasi membuat profil sendiri dengan role "viewer" (tidak bisa memilih role lain).
+      allow create: if signedIn() && request.auth.uid == uid
+                    && request.resource.data.role == 'viewer'
+                    && request.resource.data.keys().hasOnly(['email', 'nama', 'role', 'createdAt']);
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Master barang
+    match /items/{id} {
+      allow read: if canRead();
+      allow create, delete: if isAdmin();
+      // Staff hanya boleh mengubah angka stok (lewat transaksi), bukan data master.
+      allow update: if isAdmin()
+                    || (isStaff() && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['totalMasuk', 'totalTerpakai', 'totalRusak', 'totalHilang', 'sisa', 'updatedAt']));
+    }
+
+    // Transaksi stok: hanya bisa ditambah (tidak bisa diubah/dihapus) agar audit terjaga
+    match /transactions/{id} {
+      allow read: if canRead();
+      allow create: if isStaff()
+                    && request.resource.data.petugasUid == request.auth.uid
+                    && request.resource.data.jenis in ['masuk', 'terpakai', 'rusak', 'hilang']
+                    && request.resource.data.jumlah is number
+                    && request.resource.data.jumlah > 0;
+      allow update, delete: if false;
+    }
+
+    // Hasil stock opname
+    match /opnames/{id} {
+      allow read: if canRead();
+      allow create: if isStaff() && request.resource.data.petugasUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Audit log / riwayat
+    match /auditLogs/{id} {
+      allow read: if canRead();
+      allow create: if isStaff() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Counter kode barang otomatis (CAF-001, dst.)
+    match /counters/{id} {
+      allow read: if canRead();
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "appId": "id.bisnishotel.stockcontrol",
+  "appName": "Global Stock Control",
+  "webDir": "out",
+  "server": {
+    "androidScheme": "https"
+  }
+}

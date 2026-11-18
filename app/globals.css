@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Tema: dark navy + gold */
+  --background: 221 56% 8%;
+  --foreground: 210 24% 94%;
+  --card: 221 46% 12%;
+  --card-foreground: 210 24% 94%;
+  --popover: 221 50% 10%;
+  --popover-foreground: 210 24% 94%;
+  --primary: 46 65% 52%;
+  --primary-foreground: 221 56% 8%;
+  --secondary: 221 34% 19%;
+  --secondary-foreground: 210 24% 94%;
+  --muted: 221 32% 16%;
+  --muted-foreground: 218 18% 66%;
+  --accent: 221 34% 20%;
+  --accent-foreground: 210 24% 96%;
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 221 30% 20%;
+  --input: 221 30% 24%;
+  --ring: 46 65% 52%;
+  --radius: 0.625rem;
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans), system-ui, sans-serif;
+    background-image: radial-gradient(1100px 500px at 85% -10%, hsl(46 65% 52% / 0.06), transparent 60%);
+    background-attachment: fixed;
+  }
+  select option {
+    background-color: hsl(221 50% 10%);
+    color: hsl(210 24% 94%);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(221 30% 26%);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  input[type='number']::-webkit-inner-spin-button {
+    opacity: 0.4;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+    background-image: none !important;
+    color: #000 !important;
+  }
+}
+
+/* Cetak laporan ke PDF: semua elemen layar disembunyikan lewat utilitas print:hidden,
+   tampilan cetak (print:block) memakai warna hitam di atas putih. */
+@media print {
+  .print\:block,
+  .print\:block * {
+    color: #000 !important;
+    background-color: transparent !important;
+    border-color: #777 !important;
+  }
+  .print\:block thead tr {
+    background-color: #e5e7eb !important;
+  }
+  .print\:block table {
+    page-break-inside: auto;
+  }
+  .print\:block tr {
+    page-break-inside: avoid;
+  }
+  .print\:block thead {
+    display: table-header-group;
+  }
+}
